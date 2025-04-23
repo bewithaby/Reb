@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rebuild - Resume Builder</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    textarea { width: 100%; resize: vertical; overflow-y: auto; padding: 10px; margin-bottom: 20px; }
+    #txtJD, #txtExRes { height: 200px; max-height: 300px; }
+    #txtAddInfo { height: 100px; max-height: 150px; }
+    .container { max-width: 800px; margin: auto; }
+    .button-container { text-align: center; }
+    button { padding: 10px 20px; font-size: 16px; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Rebuild - Resume Builder</h1>
+    <textarea id="txtJD" maxlength="10000" placeholder="Job Description..."></textarea>
+    <textarea id="txtExRes" maxlength="10000" placeholder="Existing Resume..."></textarea>
+    <textarea id="txtAddInfo" maxlength="700" placeholder="Additional Information..."></textarea>
+    <div class="button-container">
+      <button onclick="buildResume()">Build Resume</button>
+    </div>
+  </div>
+
+  <script>
+    function buildResume() {
+      const jd = document.getElementById('txtJD').value.trim();
+      const resume = document.getElementById('txtExRes').value.trim();
+      const addInfo = document.getElementById('txtAddInfo').value.trim();
+
+      if (jd.length < 500 || resume.length < 500) {
+        alert("Please ensure both Job Description and Existing Resume have at least 500 characters.");
+        return;
+      }
+
+      const prompt = `You are an expert ATS (Applicant Tracking System) who scans for resumes to match the job description. Now, as an ATS, compare the given resume with the job description, and modify the resume to suit the job description. Keep the original structure of the resume. Carefully add keywords and make sure to keep a professional tone while not sounding like AI created.\n\nHere is the Job Description:\n${jd}\n\nResume:\n${resume}\n\n${addInfo ? addInfo : ''}`;
+
+      localStorage.setItem("resumePrompt", prompt);
+      window.location.href = "output.html";
+    }
+  </script>
+</body>
+</html>
