@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rebuild - Output</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    .result-section { margin-bottom: 40px; }
+    .result-section h2 { margin-bottom: 10px; }
+    textarea { width: 100%; height: 300px; margin-bottom: 10px; }
+    button.copy-btn { margin-bottom: 20px; }
+  </style>
+</head>
+<body>
+  <h1>Resume Results</h1>
+  <div id="results">
+    <div class="result-section" id="chatgpt-section">
+      <h2>ChatGPT</h2>
+      <textarea id="chatgpt-output">[Mocked ChatGPT output will appear here]</textarea>
+      <button class="copy-btn" onclick="copyText('chatgpt-output')">Copy ChatGPT Output</button>
+    </div>
+    <div class="result-section" id="gemini-section">
+      <h2>Google Gemini</h2>
+      <textarea id="gemini-output">[Mocked Google Gemini output will appear here]</textarea>
+      <button class="copy-btn" onclick="copyText('gemini-output')">Copy Gemini Output</button>
+    </div>
+    <div class="result-section" id="copilot-section">
+      <h2>Copilot</h2>
+      <textarea id="copilot-output">[Mocked Copilot output will appear here]</textarea>
+      <button class="copy-btn" onclick="copyText('copilot-output')">Copy Copilot Output</button>
+    </div>
+  </div>
+
+  <script>
+    function copyText(id) {
+      const textarea = document.getElementById(id);
+      textarea.select();
+      document.execCommand("copy");
+      alert("Copied to clipboard!");
+    }
+
+    window.onload = () => {
+      const prompt = localStorage.getItem("resumePrompt");
+      // Mocked AI output for demonstration purposes
+      document.getElementById("chatgpt-output").value = `Processed with ChatGPT:\n\n${prompt}`;
+      document.getElementById("gemini-output").value = `Processed with Google Gemini:\n\n${prompt}`;
+      document.getElementById("copilot-output").value = `Processed with Copilot:\n\n${prompt}`;
+    }
+  </script>
+</body>
+</html>
