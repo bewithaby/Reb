@@ -3,50 +3,46 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Rebuild - Output</title>
+  <title>Rebuild - Resume Output</title>
   <style>
-    body { font-family: Arial, sans-serif; padding: 20px; }
-    .result-section { margin-bottom: 40px; }
-    .result-section h2 { margin-bottom: 10px; }
-    textarea { width: 100%; height: 300px; margin-bottom: 10px; }
-    button.copy-btn { margin-bottom: 20px; }
+    body { font-family: Arial, sans-serif; padding: 20px; background: #f9f9f9; }
+    .section { background: #fff; padding: 20px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    h2 { margin-top: 0; }
+    pre { white-space: pre-wrap; word-wrap: break-word; background: #f0f0f0; padding: 10px; border-radius: 4px; }
+    button.copy-btn { float: right; margin-bottom: 10px; }
   </style>
 </head>
 <body>
   <h1>Resume Results</h1>
-  <div id="results">
-    <div class="result-section" id="chatgpt-section">
-      <h2>ChatGPT</h2>
-      <textarea id="chatgpt-output">[Mocked ChatGPT output will appear here]</textarea>
-      <button class="copy-btn" onclick="copyText('chatgpt-output')">Copy ChatGPT Output</button>
-    </div>
-    <div class="result-section" id="gemini-section">
-      <h2>Google Gemini</h2>
-      <textarea id="gemini-output">[Mocked Google Gemini output will appear here]</textarea>
-      <button class="copy-btn" onclick="copyText('gemini-output')">Copy Gemini Output</button>
-    </div>
-    <div class="result-section" id="copilot-section">
-      <h2>Copilot</h2>
-      <textarea id="copilot-output">[Mocked Copilot output will appear here]</textarea>
-      <button class="copy-btn" onclick="copyText('copilot-output')">Copy Copilot Output</button>
-    </div>
+
+  <div class="section">
+    <h2>ChatGPT <button class="copy-btn" onclick="copyText('chatgpt')">Copy</button></h2>
+    <pre id="chatgpt"></pre>
+  </div>
+
+  <div class="section">
+    <h2>Google Gemini <button class="copy-btn" onclick="copyText('gemini')">Copy</button></h2>
+    <pre id="gemini"></pre>
+  </div>
+
+  <div class="section">
+    <h2>Writer.com <button class="copy-btn" onclick="copyText('writer')">Copy</button></h2>
+    <pre id="writer"></pre>
   </div>
 
   <script>
-    function copyText(id) {
-      const textarea = document.getElementById(id);
-      textarea.select();
-      document.execCommand("copy");
-      alert("Copied to clipboard!");
+    function loadResults() {
+      document.getElementById('chatgpt').textContent = localStorage.getItem('chatgptResult') || 'No result';
+      document.getElementById('gemini').textContent = localStorage.getItem('geminiResult') || 'No result';
+      document.getElementById('writer').textContent = localStorage.getItem('writerResult') || 'No result';
     }
 
-    window.onload = () => {
-      const prompt = localStorage.getItem("resumePrompt");
-      // Mocked AI output for demonstration purposes
-      document.getElementById("chatgpt-output").value = `Processed with ChatGPT:\n\n${prompt}`;
-      document.getElementById("gemini-output").value = `Processed with Google Gemini:\n\n${prompt}`;
-      document.getElementById("copilot-output").value = `Processed with Copilot:\n\n${prompt}`;
+    function copyText(id) {
+      const text = document.getElementById(id).textContent;
+      navigator.clipboard.writeText(text).then(() => alert('Copied to clipboard!'));
     }
+
+    window.onload = loadResults;
   </script>
 </body>
 </html>
