@@ -1,80 +1,76 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Rebuild Resume</title>
-  <style>
-    body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f4; }
-    .container { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-    textarea { width: 100%; height: 200px; resize: vertical; padding: 10px; margin-bottom: 20px; border-radius: 4px; border: 1px solid #ccc; }
-    #txtAddInfo { height: 100px; }
-    button { display: block; margin: 0 auto; padding: 10px 20px; font-size: 16px; border-radius: 5px; border: none; background-color: #007BFF; color: white; cursor: pointer; }
-    button:hover { background-color: #0056b3; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume Builder</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        textarea { width: 100%; height: 200px; margin-bottom: 20px; resize: vertical; overflow-y: auto; }
+        #txtAddInfo { height: 100px; }
+        button { display: block; margin: 0 auto; padding: 10px 20px; font-size: 16px; }
+        .output { margin-top: 40px; }
+        .output-section { margin-bottom: 40px; }
+        .copy-button { margin: 5px 0; }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Rebuild Resume</h1>
-    <label>Job Description</label>
+    <h1>Resume Builder</h1>
+
+    <label for="txtJD">Job Description</label>
     <textarea id="txtJD" maxlength="10000"></textarea>
 
-    <label>Existing Resume</label>
+    <label for="txtExRes">Existing Resume</label>
     <textarea id="txtExRes" maxlength="10000"></textarea>
 
-    <label>Additional Information</label>
+    <label for="txtAddInfo">Additional Information</label>
     <textarea id="txtAddInfo" maxlength="700"></textarea>
 
     <button onclick="buildResume()">Build Resume</button>
-  </div>
 
-  <script>
-    async function buildResume() {
-      const jd = document.getElementById('txtJD').value.trim();
-      const resume = document.getElementById('txtExRes').value.trim();
-      const addInfo = document.getElementById('txtAddInfo').value.trim();
+    <div class="output" id="output"></div>
 
-      if (jd.length < 500 || resume.length < 500) {
-        alert("Please ensure both Job Description and Existing Resume have at least 500 characters.");
-        return;
-      }
+    <script>
+        async function buildResume() {
+            const jd = document.getElementById('txtJD').value;
+            const resume = document.getElementById('txtExRes').value;
+            const addInfo = document.getElementById('txtAddInfo').value;
 
-      const prompt = `You are an expert ATS (Applicant Tracking System) who scans for resumes to match the job description. Now, as an ATS, compare the given resume with the job description, and modify the resume to suit the job description. Keep the original structure of the resume. Carefully add keywords and make sure to keep a professional tone while not sounding like AI created.\n\nHere is the Job Description:\n${jd}\n\nResume:\n${resume}\n\n${addInfo ? addInfo : ''}`;
+            if (jd.length < 500 || resume.length < 500) {
+                alert("Job Description and Existing Resume must each have at least 500 characters.");
+                return;
+            }
 
-      try {
-        const [chatgptRes, geminiRes, writerRes] = await Promise.all([
-          fetch('/api/chatgpt', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ prompt })
-          }),
-          fetch('/api/gemini', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ prompt })
-          }),
-          fetch('/api/writer', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ prompt })
-          })
-        ]);
+            let prompt = `You are an expert ATS (Applicant Tracking System) who scans for resumes to match the job description. Now, as an ATS, compare the given resume with the job description, and modify the resume to suit the job description. Keep the original structure of the resume. Carefully add keywords and make sure to keep a professional tone while not sounding like AI created.\n\nHere is the Job Description:\n${jd}\n\nResume:\n${resume}`;
+            if (addInfo.trim() !== "") {
+                prompt += `\n\nAdditional Info:\n${addInfo}`;
+            }
 
-        const chatgptText = await chatgptRes.text();
-        const geminiText = await geminiRes.text();
-        const writerText = await writerRes.text();
+            const services = ['chatgpt', 'gemini', 'writer'];
+            const output = document.getElementById('output');
+            output.innerHTML = '<h2>Generating results...</h2>';
 
-        localStorage.setItem("chatgptResult", chatgptText);
-        localStorage.setItem("geminiResult", geminiText);
-        localStorage.setItem("writerResult", writerText);
+            const fetchResults = await Promise.all(services.map(async service => {
+                try {
+                    const response = await fetch(`https://resume-backend-bfzf.onrender.com/api/${service}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ prompt })
+                    });
+                    const data = await response.json();
+                    return `<div class='output-section'><h3>${service.toUpperCase()}</h3><button class='copy-button' onclick="copyToClipboard('output-${service}')">Copy All</button><pre id='output-${service}'>${data.output}</pre></div>`;
+                } catch (error) {
+                    return `<div class='output-section'><h3>${service.toUpperCase()}</h3><p style='color:red;'>Error: ${error.message}</p></div>`;
+                }
+            }));
 
-        window.location.href = "output.html";
+            output.innerHTML = `<h2>Generated Resumes</h2>` + fetchResults.join('');
+        }
 
-      } catch (err) {
-        console.error("Error during resume generation:", err);
-        alert("There was an error generating the resume. Check console for details.");
-      }
-    }
-  </script>
+        function copyToClipboard(id) {
+            const text = document.getElementById(id).innerText;
+            navigator.clipboard.writeText(text).then(() => alert('Copied!'));
+        }
+    </script>
 </body>
 </html>
