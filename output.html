@@ -37,8 +37,15 @@
                     if (!response.ok) {
                         throw new Error(`HTTP error! status: ${response.status}`);
                     }
-                    const data = await response.json();
-                    const resultText = data.output || 'No output returned.';
+
+                    let resultText = await response.text();
+                    try {
+                        const json = JSON.parse(resultText);
+                        resultText = json.output || json.response || resultText;
+                    } catch (e) {
+                        // use plain text result as is
+                    }
+
                     return `<div class='output-section'>
                         <h3>${service.toUpperCase()}</h3>
                         <button class='copy-button' onclick="copyToClipboard('output-${service}')">Copy All</button>
