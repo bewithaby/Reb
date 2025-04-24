@@ -10,7 +10,6 @@ load_dotenv()
 
 app = Flask(__name__)
 
-# Load your API keys from environment variables
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 WRITER_API_KEY = os.getenv("WRITER_API_KEY")
@@ -24,16 +23,14 @@ def chatgpt_api():
             model="gpt-4",
             messages=[{"role": "user", "content": prompt}]
         )
-        return response.choices[0].message['content']
+        return jsonify({"output": response.choices[0].message['content']})
     except Exception as e:
-        return str(e), 500
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/api/gemini', methods=['POST'])
 def gemini_api():
     prompt = request.json.get('prompt')
     try:
-        # Replace with actual Gemini API call
-        # Example endpoint and headers structure might vary
         headers = {
             'Content-Type': 'application/json',
             'Authorization': f'Bearer {GOOGLE_API_KEY}'
@@ -42,9 +39,10 @@ def gemini_api():
             "contents": [{"parts": [{"text": prompt}]}]
         }
         response = requests.post("https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent", headers=headers, json=data)
-        return response.json()['candidates'][0]['content']['parts'][0]['text']
+        gemini_output = response.json()['candidates'][0]['content']['parts'][0]['text']
+        return jsonify({"output": gemini_output})
     except Exception as e:
-        return str(e), 500
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/api/writer', methods=['POST'])
 def writer_api():
@@ -62,9 +60,9 @@ def writer_api():
             }
         }
         response = requests.post("https://api.writer.com/v1/generate", headers=headers, json=payload)
-        return response.json()['output']
+        return jsonify({"output": response.json()['output']})
     except Exception as e:
-        return str(e), 500
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
     app.run(debug=True)
