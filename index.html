@@ -9,9 +9,6 @@
         textarea { width: 100%; height: 200px; margin-bottom: 20px; resize: vertical; overflow-y: auto; }
         #txtAddInfo { height: 100px; }
         button { display: block; margin: 0 auto; padding: 10px 20px; font-size: 16px; }
-        .output { margin-top: 40px; }
-        .output-section { margin-bottom: 40px; }
-        .copy-button { margin: 5px 0; }
     </style>
 </head>
 <body>
@@ -28,10 +25,8 @@
 
     <button onclick="buildResume()">Build Resume</button>
 
-    <div class="output" id="output"></div>
-
     <script>
-        async function buildResume() {
+        function buildResume() {
             const jd = document.getElementById('txtJD').value;
             const resume = document.getElementById('txtExRes').value;
             const addInfo = document.getElementById('txtAddInfo').value;
@@ -46,30 +41,8 @@
                 prompt += `\n\nAdditional Info:\n${addInfo}`;
             }
 
-            const services = ['chatgpt', 'gemini', 'writer'];
-            const output = document.getElementById('output');
-            output.innerHTML = '<h2>Generating results...</h2>';
-
-            const fetchResults = await Promise.all(services.map(async service => {
-                try {
-                    const response = await fetch(`https://resume-backend-bfzf.onrender.com/api/${service}`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ prompt })
-                    });
-                    const data = await response.json();
-                    return `<div class='output-section'><h3>${service.toUpperCase()}</h3><button class='copy-button' onclick="copyToClipboard('output-${service}')">Copy All</button><pre id='output-${service}'>${data.output}</pre></div>`;
-                } catch (error) {
-                    return `<div class='output-section'><h3>${service.toUpperCase()}</h3><p style='color:red;'>Error: ${error.message}</p></div>`;
-                }
-            }));
-
-            output.innerHTML = `<h2>Generated Resumes</h2>` + fetchResults.join('');
-        }
-
-        function copyToClipboard(id) {
-            const text = document.getElementById(id).innerText;
-            navigator.clipboard.writeText(text).then(() => alert('Copied!'));
+            sessionStorage.setItem('resumePrompt', prompt);
+            window.location.href = 'output.html';
         }
     </script>
 </body>
