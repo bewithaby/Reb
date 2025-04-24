@@ -3,50 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generated Resume</title>
+    <title>Resume Builder</title>
     <style>
         body { font-family: Arial, sans-serif; padding: 20px; }
-        .output { margin-top: 40px; }
-        .output-section { margin-bottom: 40px; }
-        .copy-button { margin: 5px 0; }
+        textarea { width: 100%; height: 200px; margin-bottom: 20px; resize: vertical; overflow-y: auto; }
+        #txtAddInfo { height: 100px; }
+        button { display: block; margin: 0 auto; padding: 10px 20px; font-size: 16px; }
     </style>
 </head>
 <body>
-    <h1>Generated Resume Results</h1>
-    <div class="output" id="output"></div>
+    <h1>Resume Builder</h1>
+
+    <label for="txtJD">Job Description</label>
+    <textarea id="txtJD" maxlength="10000"></textarea>
+
+    <label for="txtExRes">Existing Resume</label>
+    <textarea id="txtExRes" maxlength="10000"></textarea>
+
+    <label for="txtAddInfo">Additional Information</label>
+    <textarea id="txtAddInfo" maxlength="700"></textarea>
+
+    <button onclick="buildResume()">Build Resume</button>
 
     <script>
-        window.onload = async function () {
-            const prompt = sessionStorage.getItem('resumePrompt');
-            if (!prompt) {
-                document.getElementById('output').innerHTML = '<p style="color:red;">No prompt found. Please go back and enter the resume details.</p>';
+        function buildResume() {
+            const jd = document.getElementById('txtJD').value;
+            const resume = document.getElementById('txtExRes').value;
+            const addInfo = document.getElementById('txtAddInfo').value;
+
+            if (jd.length < 500 || resume.length < 500) {
+                alert("Job Description and Existing Resume must each have at least 500 characters.");
                 return;
             }
 
-            const services = ['chatgpt', 'gemini', 'writer'];
-            const output = document.getElementById('output');
-            output.innerHTML = '<h2>Generating results...</h2>';
+            let prompt = `You are an expert ATS (Applicant Tracking System) who scans for resumes to match the job description. Now, as an ATS, compare the given resume with the job description, and modify the resume to suit the job description. Keep the original structure of the resume. Carefully add keywords and make sure to keep a professional tone while not sounding like AI created.\n\nHere is the Job Description:\n${jd}\n\nResume:\n${resume}`;
+            if (addInfo.trim() !== "") {
+                prompt += `\n\nAdditional Info:\n${addInfo}`;
+            }
 
-            const fetchResults = await Promise.all(services.map(async service => {
-                try {
-                    const response = await fetch(`https://resume-backend-bfzf.onrender.com/api/${service}`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ prompt })
-                    });
-                    const data = await response.json();
-                    return `<div class='output-section'><h3>${service.toUpperCase()}</h3><button class='copy-button' onclick="copyToClipboard('output-${service}')">Copy All</button><pre id='output-${service}'>${data.output}</pre></div>`;
-                } catch (error) {
-                    return `<div class='output-section'><h3>${service.toUpperCase()}</h3><p style='color:red;'>Error: ${error.message}</p></div>`;
-                }
-            }));
-
-            output.innerHTML = `<h2>Generated Resumes</h2>` + fetchResults.join('');
-        };
-
-        function copyToClipboard(id) {
-            const text = document.getElementById(id).innerText;
-            navigator.clipboard.writeText(text).then(() => alert('Copied!'));
+            sessionStorage.setItem('resumePrompt', prompt);
+            window.location.href = 'output.html';
         }
     </script>
 </body>
