@@ -3,29 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Resume Builder - Results</title>
+    <title>Generated Resume</title>
     <style>
         body { font-family: Arial, sans-serif; padding: 20px; }
         .output { margin-top: 40px; }
         .output-section { margin-bottom: 40px; }
-        pre { background-color: #f4f4f4; padding: 15px; border-radius: 5px; white-space: pre-wrap; }
         .copy-button { margin: 5px 0; }
     </style>
 </head>
 <body>
     <h1>Generated Resume Results</h1>
-    <div id="output"></div>
+    <div class="output" id="output"></div>
 
     <script>
-        const services = ['chatgpt', 'gemini', 'writer'];
-
-        async function loadResults() {
+        window.onload = async function () {
             const prompt = sessionStorage.getItem('resumePrompt');
             if (!prompt) {
-                document.getElementById('output').innerHTML = '<p>No prompt found. Please go back and fill the form.</p>';
+                document.getElementById('output').innerHTML = '<p style="color:red;">No prompt found. Please go back and enter the resume details.</p>';
                 return;
             }
 
+            const services = ['chatgpt', 'gemini', 'writer'];
             const output = document.getElementById('output');
             output.innerHTML = '<h2>Generating results...</h2>';
 
@@ -36,22 +34,31 @@
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ prompt })
                     });
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
                     const data = await response.json();
-                    return `<div class='output-section'><h3>${service.toUpperCase()}</h3><button class='copy-button' onclick="copyToClipboard('output-${service}')">Copy All</button><pre id='output-${service}'>${data.output}</pre></div>`;
+                    const resultText = data.output || 'No output returned.';
+                    return `<div class='output-section'>
+                        <h3>${service.toUpperCase()}</h3>
+                        <button class='copy-button' onclick="copyToClipboard('output-${service}')">Copy All</button>
+                        <pre id='output-${service}'>${resultText}</pre>
+                    </div>`;
                 } catch (error) {
-                    return `<div class='output-section'><h3>${service.toUpperCase()}</h3><p style='color:red;'>Error: ${error.message}</p></div>`;
+                    return `<div class='output-section'>
+                        <h3>${service.toUpperCase()}</h3>
+                        <p style='color:red;'>Error fetching result: ${error.message}</p>
+                    </div>`;
                 }
             }));
 
             output.innerHTML = `<h2>Generated Resumes</h2>` + fetchResults.join('');
-        }
+        };
 
         function copyToClipboard(id) {
             const text = document.getElementById(id).innerText;
             navigator.clipboard.writeText(text).then(() => alert('Copied!'));
         }
-
-        window.onload = loadResults;
     </script>
 </body>
 </html>
