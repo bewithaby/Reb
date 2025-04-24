@@ -26,7 +26,7 @@
   </div>
 
   <script>
-    function buildResume() {
+    async function buildResume() {
       const jd = document.getElementById('txtJD').value.trim();
       const resume = document.getElementById('txtExRes').value.trim();
       const addInfo = document.getElementById('txtAddInfo').value.trim();
@@ -38,7 +38,17 @@
 
       const prompt = `You are an expert ATS (Applicant Tracking System) who scans for resumes to match the job description. Now, as an ATS, compare the given resume with the job description, and modify the resume to suit the job description. Keep the original structure of the resume. Carefully add keywords and make sure to keep a professional tone while not sounding like AI created.\n\nHere is the Job Description:\n${jd}\n\nResume:\n${resume}\n\n${addInfo ? addInfo : ''}`;
 
-      localStorage.setItem("resumePrompt", prompt);
+      // API call mocks (replace with real API calls in backend)
+      const results = await Promise.all([
+        fetch('/api/chatgpt', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt }) }).then(r => r.text()),
+        fetch('/api/gemini', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt }) }).then(r => r.text()),
+        fetch('/api/writer', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt }) }).then(r => r.text())
+      ]);
+
+      localStorage.setItem("chatgptResult", results[0]);
+      localStorage.setItem("geminiResult", results[1]);
+      localStorage.setItem("writerResult", results[2]);
+
       window.location.href = "output.html";
     }
   </script>
