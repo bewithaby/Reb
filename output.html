@@ -41,6 +41,9 @@
                     let resultText = await response.text();
                     try {
                         const json = JSON.parse(resultText);
+                        console.log(`Calling: ${service}`);
+                        console.log(`Request Prompt:`, prompt);
+                        console.log(`Raw Response from ${service}:`, resultText);
                         resultText = json.output || json.response || resultText;
                     } catch (e) {
                         // use plain text result as is
