@@ -1,17 +1,17 @@
 
 import os
-import openai
 import requests
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from dotenv import load_dotenv
+import openai
 
 load_dotenv()
 
 app = Flask(__name__)
 CORS(app)
 
-openai.api_key = os.getenv("OPENAI_API_KEY")
+client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 WRITER_API_KEY = os.getenv("WRITER_API_KEY")
 
@@ -20,11 +20,11 @@ def chatgpt():
     data = request.get_json()
     prompt = data.get('prompt', '')
     try:
-        response = openai.ChatCompletion.create(
+        response = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": prompt}]
         )
-        output = response.choices[0].message["content"]
+        output = response.choices[0].message.content
         return jsonify({"output": output})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -38,12 +38,15 @@ def gemini():
             "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent",
             headers={"Content-Type": "application/json"},
             params={"key": GEMINI_API_KEY},
-            json={
-                "contents": [{"parts": [{"text": prompt}]}]
-            }
+            json={"contents": [{"parts": [{"text": prompt}]}]}
         )
         output = response.json()
-        return jsonify({"output": output.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "No output")})
+        return jsonify({
+            "output": output.get("candidates", [{}])[0]
+                              .get("content", {})
+                              .get("parts", [{}])[0]
+                              .get("text", "No output")
+        })
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
@@ -52,7 +55,6 @@ def writer():
     data = request.get_json()
     prompt = data.get('prompt', '')
     try:
-        # Example Writer API endpoint (mocked behavior)
         response = requests.post(
             "https://api.writer.com/v1/generate",
             headers={
